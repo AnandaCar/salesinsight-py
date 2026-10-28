@@ -9,7 +9,7 @@ import matplotlib.pyplot as plt  # Importo os recursos utilizados nesta etapa.
 
 
 def gerar_dataset_vendas(n_registros=200, seed=42):  # Defino uma função reutilizável com os parâmetros indicados.
-    """Gera o dataset sintético do enunciado, incluindo datas inválidas."""
+    """Gero o dataset sintético do enunciado, incluindo datas inválidas."""
     random.seed(seed)  # Fixo a semente para reproduzir os mesmos sorteios.
     np.random.seed(seed)  # Fixo a semente para reproduzir os mesmos sorteios.
     produtos = ['Notebook', 'Smartphone', 'Tablet', 'Monitor', 'Teclado', 'Mouse', 'Headset']  # Calculo e guarda produtos para as próximas operações.
@@ -36,7 +36,7 @@ def gerar_dataset_vendas(n_registros=200, seed=42):  # Defino uma função reuti
 
 
 def inspecionar_dados(df):  # Defino uma função reutilizável com os parâmetros indicados.
-    """Mostra a estrutura do DataFrame e retorna os dados sem modificá-los."""
+    """Mostro a estrutura do DataFrame e retorna os dados sem modificá-los."""
     print('Shape:', df.shape)  # Mostro o resultado para inspeção e aprendizagem.
     print('Colunas:', list(df.columns))  # Mostro o resultado para inspeção e aprendizagem.
     print('Tipos:\n', df.dtypes)  # Mostro o resultado para inspeção e aprendizagem.
@@ -95,14 +95,14 @@ MESES = dict(enumerate(['Janeiro','Fevereiro','Março','Abril','Maio','Junho','J
 
 
 def processar_coluna(df, coluna, funcao_transformacao, nome_saida=None):  # Defino uma função reutilizável com os parâmetros indicados.
-    """Recebe uma função como argumento e a aplica a uma coluna."""
+    """Recebo uma função como argumento e a aplica a uma coluna."""
     resultado = df.copy()  # Crio uma cópia para preservar a tabela original.
     resultado[nome_saida or f'{coluna}_transformado'] = resultado[coluna].apply(funcao_transformacao)  # Aplico a função informada a cada valor.
     return resultado  # Retorno o resultado para quem chamou a função.
 
 
 def criar_colunas(df):  # Defino uma função reutilizável com os parâmetros indicados.
-    """Cria receita, calendário e faixas com operações vetorizadas."""
+    """Crio receita, calendário e faixas com operações vetorizadas."""
     resultado = df.copy()  # Crio uma cópia para preservar a tabela original.
     resultado['receita_total'] = resultado['quantidade'] * resultado['preco_unitario']  # Calculo e guarda resultado['receita_total'] para as próximas operações.
     resultado['mes'] = resultado['data_venda'].dt.month  # Extraio um componente do calendário a partir das datas.
@@ -152,12 +152,12 @@ CORES = {'Computadores': '#2456A6', 'Celulares': '#D57824', 'Perifericos': '#258
 
 
 def moeda_br(valor):  # Defino uma função reutilizável com os parâmetros indicados.
-    """Formata um número com separadores monetários brasileiros."""
+    """Formato um número com separadores monetários brasileiros."""
     return f'{valor:,.2f}'.replace(',', 'X').replace('.', ',').replace('X', '.')  # Retorno o resultado para quem chamou a função.
 
 
 def desenhar_visao(ax, tipo, df, metricas):  # Defino uma função reutilizável com os parâmetros indicados.
-    """Desenha uma visão em um eixo, reutilizável nas figuras e no painel."""
+    """Desenho uma visão em um eixo, reutilizável nas figuras e no painel."""
     if tipo == 'linha':  # Executo o bloco somente quando esta condição é verdadeira.
         tabela = metricas['por_mes']  # Calculo e guarda tabela para as próximas operações.
         datas = pd.to_datetime(dict(year=tabela['ano'], month=tabela['mes'], day=1))  # Converto os valores para datas que o Pandas consegue manipular.
@@ -191,7 +191,7 @@ def desenhar_visao(ax, tipo, df, metricas):  # Defino uma função reutilizável
 
 
 def criar_visualizacoes(df, metricas, pasta='outputs/graficos', mostrar=False):  # Defino uma função reutilizável com os parâmetros indicados.
-    """Salva três figuras individuais e um painel 2×2; retorna seus caminhos."""
+    """Salvo três figuras individuais e um painel 2×2; retorna seus caminhos."""
     destino = Path(pasta)  # Calculo e guarda destino para as próximas operações.
     destino.mkdir(parents=True, exist_ok=True)  # Crio as pastas de saída, caso ainda não existam.
     arquivos = []  # Calculo e guarda arquivos para as próximas operações.
@@ -252,12 +252,12 @@ def exportar_resultados(metricas, clientes, estatisticas, relatorio, pasta='outp
 
 
 class AnalisadorDeVendas:  # A classe reúne dados e operações do mesmo analisador.
-    """Coordena funções simples; self identifica esta instância do analisador."""
+    """Coordeno funções simples; self identifica esta instância do analisador."""
     def __init__(self, pasta_saida='outputs'):  # Inicializa um novo analisador.
         self.pasta_saida = Path(pasta_saida)  # Guardo onde salvar os resultados.
 
     def carregar(self, caminho):  # Recebo o caminho do CSV bruto.
-        """Lê vendas e mantém a versão bruta para auditoria."""
+        """Leio vendas e mantém a versão bruta para auditoria."""
         self.df_bruto = pd.read_csv(caminho)  # Leio a tabela do disco.
         return self.df_bruto  # Retorno a tabela carregada.
 
@@ -268,18 +268,18 @@ class AnalisadorDeVendas:  # A classe reúne dados e operações do mesmo analis
         return self.df  # Retorno a tabela pronta para análise.
 
     def analisar(self):  # Coordeno as métricas e os segmentos.
-        """Calcula tabelas agregadas, clientes e estatísticas gerais."""
+        """Calculo tabelas agregadas, clientes e estatísticas gerais."""
         self.metricas = calcular_metricas(self.df)  # Agrupo as vendas em dimensões.
         self.clientes = segmentar_clientes(self.df)  # Classifica o gasto acumulado.
         self.estatisticas = calcular_estatisticas(self.df)  # Resume os indicadores.
         return self.metricas  # Retorno as tabelas agregadas.
 
     def visualizar(self, mostrar=False):  # Permito mostrar os gráficos no notebook.
-        """Exporta as quatro figuras do projeto."""
+        """Exporto as quatro figuras do projeto."""
         return criar_visualizacoes(self.df, self.metricas, self.pasta_saida / 'graficos', mostrar)  # Reutilizo o desenho.
 
     def resumo(self):  # Finaliza com arquivos e indicadores.
-        """Exporta resultados e imprime o resumo executivo."""
+        """Exporto resultados e imprime o resumo executivo."""
         exportar_resultados(self.metricas, self.clientes, self.estatisticas, self.relatorio, self.pasta_saida)  # Salvo e confere.
         print('Receita total: R$', moeda_br(self.estatisticas['receita_total']))  # Formato para leitura.
         print('Vendas válidas:', self.estatisticas['numero_vendas'])  # Mostro o volume de registros.
@@ -287,7 +287,7 @@ class AnalisadorDeVendas:  # A classe reúne dados e operações do mesmo analis
 
 
 def main(mostrar=False):  # Ponto de entrada do programa.
-    """Executa todas as etapas em ordem e retorna o analisador."""
+    """Executo todas as etapas em ordem e retorna o analisador."""
     caminho = Path('vendas.csv')  # Uso arquivo na pasta atual de execução.
     if not caminho.exists():  # Preservo um dataset já existente.
         gerar_dataset_vendas().to_csv(caminho, index=False)  # Gero a base somente quando faltar.
