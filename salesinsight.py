@@ -88,3 +88,59 @@ def tratar_dados(df):  # Define uma função reutilizável com os parâmetros in
     print('RELATÓRIO DE LIMPEZA:', json.dumps(relatorio, indent=2, ensure_ascii=False))  # Exibe o resultado para inspeção e aprendizagem.
     return limpo, relatorio  # Devolve o resultado para quem chamou a função.
 
+
+
+# RF04–RF06 e RF08: transformar, agrupar e segmentar.
+MESES = dict(enumerate(['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'], start=1))  # Calcula e guarda MESES para as próximas operações.
+
+
+def processar_coluna(df, coluna, funcao_transformacao, nome_saida=None):  # Define uma função reutilizável com os parâmetros indicados.
+    """Recebe uma função como argumento e a aplica a uma coluna."""
+    resultado = df.copy()  # Cria uma cópia para preservar a tabela original.
+    resultado[nome_saida or f'{coluna}_transformado'] = resultado[coluna].apply(funcao_transformacao)  # Aplica a função informada a cada valor.
+    return resultado  # Devolve o resultado para quem chamou a função.
+
+
+def criar_colunas(df):  # Define uma função reutilizável com os parâmetros indicados.
+    """Cria receita, calendário e faixas com operações vetorizadas."""
+    resultado = df.copy()  # Cria uma cópia para preservar a tabela original.
+    resultado['receita_total'] = resultado['quantidade'] * resultado['preco_unitario']  # Calcula e guarda resultado['receita_total'] para as próximas operações.
+    resultado['mes'] = resultado['data_venda'].dt.month  # Extrai um componente do calendário a partir das datas.
+    resultado['mes_nome'] = resultado['mes'].map(MESES)  # Aplica o mapeamento a cada valor da coluna.
+    resultado['ano'] = resultado['data_venda'].dt.year  # Extrai um componente do calendário a partir das datas.
+    resultado['trimestre'] = 'Q' + resultado['data_venda'].dt.quarter.astype(str)  # Converte os valores para o tipo indicado.
+    resultado['faixa_receita_item'] = 'Nao Classificado'  # Calcula e guarda resultado['faixa_receita_item'] para as próximas operações.
+    condicoes = [resultado['receita_total'] < 500,  # Calcula e guarda condicoes para as próximas operações.
+                 (resultado['receita_total'] >= 500) & (resultado['receita_total'] < 5000),  # Continua as condições da classificação vetorizada.
+                 resultado['receita_total'] >= 5000]  # Completa a instrução iniciada nas linhas anteriores.
+    for condicao, faixa in zip(condicoes, ['Baixo Valor','Medio Valor','Alto Valor']):  # Percorre os elementos, executando o bloco uma vez para cada item.
+        resultado.loc[condicao, 'faixa_receita_item'] = faixa  # Seleciona as linhas indicadas pela condição ou pelo índice.
+    # Segundo contexto de lambda: escala monetária, diferente da segmentação.
+    resultado = processar_coluna(resultado, 'receita_total', lambda x: round(x / 1000, 2), 'receita_em_milhares')  # Calcula e guarda resultado para as próximas operações.
+    return resultado  # Devolve o resultado para quem chamou a função.
+
+
+def calcular_metricas(df):  # Define uma função reutilizável com os parâmetros indicados.
+    """Retorna tabelas agrupadas; ticket = receita média por venda válida."""
+    metricas = {}  # Calcula e guarda metricas para as próximas operações.
+    metricas['por_mes'] = df.groupby(['ano','mes']).agg(receita_total=('receita_total','sum'), quantidade=('quantidade','sum'), n_vendas=('id_venda','size')).reset_index().sort_values(['ano','mes'])  # Agrupa registros e calcula a medida de cada grupo.
+    metricas['por_mes']['mes_nome'] = metricas['por_mes']['mes'].map(MESES)  # Aplica o mapeamento a cada valor da coluna.
+    metricas['top_produtos'] = df.groupby('produto', as_index=False)['receita_total'].sum().sort_values('receita_total', ascending=False).head(5)  # Agrupa registros e calcula a medida de cada grupo.
+    metricas['por_categoria'] = df.groupby('categoria', as_index=False)['receita_total'].sum()  # Agrupa registros e calcula a medida de cada grupo.
+    metricas['por_regiao'] = df.groupby('regiao').agg(receita_total=('receita_total','sum'), ticket_medio=('receita_total','mean')).reset_index()  # Agrupa registros e calcula a medida de cada grupo.
+    metricas['por_trimestre'] = df.groupby(['ano','trimestre'], as_index=False)['receita_total'].sum()  # Agrupa registros e calcula a medida de cada grupo.
+    for nome, tabela in metricas.items():  # Percorre os elementos, executando o bloco uma vez para cada item.
+        print('\n' + nome.upper())  # Exibe o resultado para inspeção e aprendizagem.
+        print(tabela.to_string(index=False, float_format=lambda x: f'{x:,.2f}'))  # Exibe o resultado para inspeção e aprendizagem.
+    return metricas  # Devolve o resultado para quem chamou a função.
+
+
+def segmentar_clientes(df):  # Define uma função reutilizável com os parâmetros indicados.
+    """Classifica gasto acumulado: Bronze <5000; Prata <=15000; Ouro >15000."""
+    clientes = df.groupby('cliente')['receita_total'].sum().reset_index(name='total_gasto')  # Agrupa registros e calcula a medida de cada grupo.
+    clientes['segmento'] = clientes['total_gasto'].apply(lambda x: 'Bronze' if x < 5000 else ('Prata' if x <= 15000 else 'Ouro'))  # Aplica a função informada a cada valor.
+    clientes = clientes.sort_values('total_gasto', ascending=False)  # Organiza as linhas conforme os valores da coluna.
+    print('\nTOP 10 CLIENTES\n', clientes.head(10).to_string(index=False))  # Exibe o resultado para inspeção e aprendizagem.
+    print('\nDISTRIBUIÇÃO\n', clientes['segmento'].value_counts())  # Exibe o resultado para inspeção e aprendizagem.
+    return clientes  # Devolve o resultado para quem chamou a função.
+
