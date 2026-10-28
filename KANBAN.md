@@ -1,5 +1,7 @@
-# Kanban
+# Minha organização do projeto
+
+Retomei o exemplo de Kanban da aula 01 para acompanhar as tarefas.
 
 | Backlog | A Fazer | Em Andamento | Concluído |
 |---|---|---|---|
-| Melhorias futuras | Autorizar/publicar GitHub; gravar vídeo; inserir link; enviar AVA | Revisão da estudante | Dataset; limpeza; métricas; segmentos; gráficos; classe; exportações; validação; notebook; README; roteiro |
+| Testar outras bases e recuperar datas na origem | Autorizar publicação, gravar vídeo, inserir link e enviar ao AVA | Minha revisão para apresentação | Base, limpeza, métricas, gráficos, exportações, validação e documentação |
