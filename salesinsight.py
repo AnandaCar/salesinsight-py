@@ -218,3 +218,90 @@ def criar_visualizacoes(df, metricas, pasta='outputs/graficos', mostrar=False): 
     plt.close(fig)  # Libera a figura depois de exibir ou salvar.
     return arquivos  # Devolve o resultado para quem chamou a função.
 
+
+
+# RF09–RF10: exportações e coordenação do fluxo.
+def calcular_estatisticas(df):
+    """Retorna indicadores simples usando tipos nativos serializáveis."""
+    return {  # Dicionário: cada chave identifica um indicador.
+        'receita_total': round(float(df['receita_total'].sum()), 2),  # Soma das receitas válidas.
+        'quantidade_total': int(df['quantidade'].sum()),  # Total de unidades vendidas.
+        'numero_vendas': int(len(df)),  # Uma linha representa uma venda.
+        'numero_clientes': int(df['cliente'].nunique()),  # Conta clientes distintos.
+        'ticket_medio': round(float(df['receita_total'].mean()), 2)  # Receita média por venda.
+    }
+
+
+def exportar_resultados(metricas, clientes, estatisticas, relatorio, pasta='outputs'):
+    """Escreve CSV/JSON e relê o JSON para conferir a gravação."""
+    destino = Path(pasta)  # Representa a pasta de saída.
+    destino.mkdir(parents=True, exist_ok=True)  # Cria a pasta se necessário.
+    metricas['por_mes'].to_csv(destino / 'metricas_por_mes.csv', index=False, encoding='utf-8-sig')  # Sem índice artificial.
+    clientes.to_csv(destino / 'segmentacao_clientes.csv', index=False, encoding='utf-8-sig')  # Preserva os acentos.
+    for nome in ['por_categoria', 'por_regiao', 'por_trimestre', 'top_produtos']:  # Guarda as tabelas auxiliares.
+        metricas[nome].to_csv(destino / f'{nome}.csv', index=False, encoding='utf-8-sig')  # Exporta cada tabela.
+    with open(destino / 'estatisticas_gerais.json', 'w', encoding='utf-8') as arquivo:  # Abre em modo de escrita.
+        json.dump(estatisticas, arquivo, indent=4, ensure_ascii=False)  # Grava JSON legível.
+    with open(destino / 'estatisticas_gerais.json', 'r', encoding='utf-8') as arquivo:  # Reabre em modo de leitura.
+        conferencia = json.load(arquivo)  # Recupera os dados efetivamente salvos.
+    assert conferencia == estatisticas, 'JSON diferente dos indicadores calculados.'  # Confere integridade.
+    with open(destino / 'relatorio_limpeza.json', 'w', encoding='utf-8') as arquivo:  # Guarda a auditoria.
+        json.dump(relatorio, arquivo, indent=4, ensure_ascii=False)  # Grava contagens da limpeza.
+    print('JSON gravado e lido:', conferencia)  # Mostra a conferência exigida.
+    return conferencia  # Permite reutilizar o resultado.
+
+
+class AnalisadorDeVendas:  # A classe reúne dados e operações do mesmo analisador.
+    """Coordena funções simples; self identifica esta instância do analisador."""
+    def __init__(self, pasta_saida='outputs'):  # Inicializa um novo analisador.
+        self.pasta_saida = Path(pasta_saida)  # Guarda onde salvar os resultados.
+
+    def carregar(self, caminho):  # Recebe o caminho do CSV bruto.
+        """Lê vendas e mantém a versão bruta para auditoria."""
+        self.df_bruto = pd.read_csv(caminho)  # Lê a tabela do disco.
+        return self.df_bruto  # Devolve a tabela carregada.
+
+    def transformar(self):  # Executa limpeza antes das novas colunas.
+        """Limpa os registros e cria as colunas derivadas."""
+        limpo, self.relatorio = tratar_dados(self.df_bruto)  # Recebe os dois retornos da limpeza.
+        self.df = criar_colunas(limpo)  # Calcula receita, calendário e faixas.
+        return self.df  # Devolve a tabela pronta para análise.
+
+    def analisar(self):  # Coordena as métricas e os segmentos.
+        """Calcula tabelas agregadas, clientes e estatísticas gerais."""
+        self.metricas = calcular_metricas(self.df)  # Agrupa as vendas em dimensões.
+        self.clientes = segmentar_clientes(self.df)  # Classifica o gasto acumulado.
+        self.estatisticas = calcular_estatisticas(self.df)  # Resume os indicadores.
+        return self.metricas  # Devolve as tabelas agregadas.
+
+    def visualizar(self, mostrar=False):  # Permite mostrar os gráficos no notebook.
+        """Exporta as quatro figuras do projeto."""
+        return criar_visualizacoes(self.df, self.metricas, self.pasta_saida / 'graficos', mostrar)  # Reutiliza o desenho.
+
+    def resumo(self):  # Finaliza com arquivos e indicadores.
+        """Exporta resultados e imprime o resumo executivo."""
+        exportar_resultados(self.metricas, self.clientes, self.estatisticas, self.relatorio, self.pasta_saida)  # Salva e confere.
+        print('Receita total: R$', moeda_br(self.estatisticas['receita_total']))  # Formata para leitura.
+        print('Vendas válidas:', self.estatisticas['numero_vendas'])  # Mostra o volume de registros.
+        return self.estatisticas  # Devolve o resumo.
+
+
+def main(mostrar=False):  # Ponto de entrada do programa.
+    """Executa todas as etapas em ordem e retorna o analisador."""
+    caminho = Path('vendas.csv')  # Usa arquivo na pasta atual de execução.
+    if not caminho.exists():  # Preserva um dataset já existente.
+        gerar_dataset_vendas().to_csv(caminho, index=False)  # Gera a base somente quando faltar.
+    analisador = AnalisadorDeVendas()  # Cria um objeto que coordena a análise.
+    analisador.carregar(caminho)  # Lê o CSV bruto.
+    inspecionar_dados(analisador.df_bruto)  # Mostra a estrutura inicial.
+    analisador.transformar()  # Limpa e cria novas colunas.
+    analisador.analisar()  # Calcula métricas e segmenta clientes.
+    analisador.visualizar(mostrar)  # Salva os gráficos.
+    analisador.resumo()  # Exporta os relatórios.
+    print('[CONCLUÍDO] Fluxo executado sem erros.')  # Confirma a execução completa.
+    return analisador  # Permite validar os resultados depois.
+
+
+if __name__ == '__main__':  # Executa automaticamente apenas quando este arquivo é o programa principal.
+    main()  # Inicia o fluxo completo.
+
