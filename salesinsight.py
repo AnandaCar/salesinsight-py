@@ -144,3 +144,77 @@ def segmentar_clientes(df):  # Define uma função reutilizável com os parâmet
     print('\nDISTRIBUIÇÃO\n', clientes['segmento'].value_counts())  # Exibe o resultado para inspeção e aprendizagem.
     return clientes  # Devolve o resultado para quem chamou a função.
 
+
+
+# RF07: quatro figuras com cores consistentes e exportação em PNG.
+from matplotlib.ticker import FuncFormatter  # Importa os recursos utilizados nesta etapa.
+CORES = {'Computadores': '#2456A6', 'Celulares': '#D57824', 'Perifericos': '#25846B'}  # Calcula e guarda CORES para as próximas operações.
+
+
+def moeda_br(valor):  # Define uma função reutilizável com os parâmetros indicados.
+    """Formata um número com separadores monetários brasileiros."""
+    return f'{valor:,.2f}'.replace(',', 'X').replace('.', ',').replace('X', '.')  # Devolve o resultado para quem chamou a função.
+
+
+def desenhar_visao(ax, tipo, df, metricas):  # Define uma função reutilizável com os parâmetros indicados.
+    """Desenha uma visão em um eixo, reutilizável nas figuras e no painel."""
+    if tipo == 'linha':  # Executa o bloco somente quando esta condição é verdadeira.
+        tabela = metricas['por_mes']  # Calcula e guarda tabela para as próximas operações.
+        datas = pd.to_datetime(dict(year=tabela['ano'], month=tabela['mes'], day=1))  # Converte os valores para datas que o Pandas consegue manipular.
+        ax.plot(datas, tabela['receita_total'], color='#2456A6', marker='o', linewidth=2)  # Desenha a evolução temporal como uma linha.
+        import matplotlib.dates as mdates  # Importa os recursos utilizados nesta etapa.
+        ax.xaxis.set_major_formatter(mdates.DateFormatter('%m/%Y'))  # Configura como os valores serão escritos no eixo.
+        ax.set(title='Receita mensal', xlabel='Mês / ano', ylabel='Receita (R$)')  # Define título e nomes dos eixos.
+        ax.tick_params(axis='x', rotation=40)  # Inclina os rótulos para melhorar sua legibilidade.
+    elif tipo == 'barras':  # Executa o bloco somente quando esta condição é verdadeira.
+        tabela = metricas['top_produtos'].sort_values('receita_total')  # Organiza as linhas conforme os valores da coluna.
+        ax.barh(tabela['produto'], tabela['receita_total'], color='#2456A6')  # Compara os totais usando barras horizontais.
+        ax.set(title='Top 5 produtos', xlabel='Receita (R$)', ylabel='Produto')  # Define título e nomes dos eixos.
+    elif tipo == 'dispersao':  # Executa o bloco somente quando esta condição é verdadeira.
+        for categoria, grupo in df.groupby('categoria'):  # Percorre os elementos, executando o bloco uma vez para cada item.
+            ax.scatter(grupo['quantidade'], grupo['receita_total'], label=categoria,  # Desenha um ponto por venda, agrupado por categoria.
+                       color=CORES.get(categoria, '#657384'), alpha=0.7, s=35, edgecolors='white', linewidths=0.4)  # Define cores, transparência, tamanho e borda dos pontos.
+        ax.set(title='Quantidade × receita por venda', xlabel='Quantidade (unidades)', ylabel='Receita por venda (R$)')  # Define título e nomes dos eixos.
+        ax.legend(title='Categoria', fontsize=8)  # Identifica as categorias representadas pelas cores.
+    elif tipo == 'regiao':  # Executa o bloco somente quando esta condição é verdadeira.
+        tabela = metricas['por_regiao'].sort_values('receita_total')  # Organiza as linhas conforme os valores da coluna.
+        ax.barh(tabela['regiao'], tabela['receita_total'], color='#25846B')  # Compara os totais usando barras horizontais.
+        ax.set(title='Receita por região', xlabel='Receita (R$)', ylabel='Região')  # Define título e nomes dos eixos.
+    else:  # Trata o caso em que as condições anteriores não foram atendidas.
+        raise ValueError('Visão desconhecida: ' + tipo)  # Interrompe a execução com uma mensagem para corrigir a entrada.
+    eixo = ax.xaxis if tipo in ['barras', 'regiao'] else ax.yaxis  # Calcula e guarda eixo para as próximas operações.
+    eixo.set_major_formatter(FuncFormatter(lambda valor, pos: moeda_br(valor)))  # Configura como os valores serão escritos no eixo.
+    ax.grid(axis='x' if tipo in ['barras', 'regiao'] else 'y', alpha=0.2)  # Adiciona linhas discretas para facilitar a leitura.
+    ax.spines['top'].set_visible(False)
+    ax.spines['right'].set_visible(False)  # Remove bordas superiores e laterais desnecessárias.
+    return ax  # Devolve o resultado para quem chamou a função.
+
+
+def criar_visualizacoes(df, metricas, pasta='outputs/graficos', mostrar=False):  # Define uma função reutilizável com os parâmetros indicados.
+    """Salva três figuras individuais e um painel 2×2; retorna seus caminhos."""
+    destino = Path(pasta)  # Calcula e guarda destino para as próximas operações.
+    destino.mkdir(parents=True, exist_ok=True)  # Cria as pastas de saída, caso ainda não existam.
+    arquivos = []  # Calcula e guarda arquivos para as próximas operações.
+    for tipo, nome in [('linha','receita_por_mes.png'), ('barras','top_produtos.png'), ('dispersao','quantidade_vs_receita.png')]:  # Percorre os elementos, executando o bloco uma vez para cada item.
+        fig, ax = plt.subplots(figsize=(11, 5.5))  # Cria a figura e os eixos com tamanho explícito.
+        desenhar_visao(ax, tipo, df, metricas)  # Reutiliza a função de desenho neste eixo.
+        plt.tight_layout()  # Ajusta os espaços para evitar rótulos sobrepostos.
+        caminho = destino / nome  # Calcula e guarda caminho para as próximas operações.
+        plt.savefig(caminho, dpi=150)  # Exporta a figura em PNG com resolução de 150 dpi.
+        arquivos.append(str(caminho))  # Acrescenta o novo elemento à lista.
+        if mostrar:  # Executa o bloco somente quando esta condição é verdadeira.
+            plt.show()  # Mostra a figura no notebook.
+        plt.close(fig)  # Libera a figura depois de exibir ou salvar.
+    fig, axes = plt.subplots(2, 2, figsize=(15, 10))  # Cria a figura e os eixos com tamanho explícito.
+    for ax, tipo in zip(axes.flat, ['linha','barras','dispersao','regiao']):  # Percorre os elementos, executando o bloco uma vez para cada item.
+        desenhar_visao(ax, tipo, df, metricas)  # Reutiliza a função de desenho neste eixo.
+    fig.suptitle('SalesInsight PY | Painel de vendas — dados sintéticos', fontsize=17, fontweight='bold')  # Adiciona um título geral ao painel.
+    plt.tight_layout(rect=(0, 0, 1, 0.95))  # Ajusta os espaços para evitar rótulos sobrepostos.
+    caminho = destino / 'painel_resumo.png'  # Calcula e guarda caminho para as próximas operações.
+    plt.savefig(caminho, dpi=150)  # Exporta a figura em PNG com resolução de 150 dpi.
+    arquivos.append(str(caminho))  # Acrescenta o novo elemento à lista.
+    if mostrar:  # Executa o bloco somente quando esta condição é verdadeira.
+        plt.show()  # Mostra a figura no notebook.
+    plt.close(fig)  # Libera a figura depois de exibir ou salvar.
+    return arquivos  # Devolve o resultado para quem chamou a função.
+
