@@ -16,7 +16,7 @@ Retomei o Kanban apresentado na aula 01 e o versionamento das aulas 10 a 12. Sep
 - KANBAN.md: organização das tarefas.
 
 ## Como executar
-No Colab, abro salesinsight.ipynb e executo as células de cima para baixo. Esse ambiente foi apresentado na aula 03. O notebook de entrega funciona sem depender das variáveis de uma sessão anterior.
+No Colab, abro salesinsight.ipynb e executo as células de cima para baixo. Esse ambiente foi apresentado na aula 03. O notebook de entrega funciona sem depender das variáveis de uma sessão anterior. A última célula exporta os resultados já calculados, sem repetir a análise e os gráficos.
 
 Para executar localmente, preciso de Python 3.10 ou superior. Dentro da pasta do projeto, uso:
 
