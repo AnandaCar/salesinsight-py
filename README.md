@@ -14,7 +14,6 @@ Retomei o Kanban apresentado na aula 01 e o versionamento das aulas 10 a 12. Sep
 - MAPA_AULAS.md: relação entre o que desenvolvi e as aulas consultadas.
 - VALIDACAO.md: verificações realizadas.
 - KANBAN.md: organização das tarefas.
-- ROTEIRO_VIDEO.md: minha apresentação, com a referência às aulas.
 
 ## Como executar
 No Colab, abro salesinsight.ipynb e executo as células de cima para baixo. Esse ambiente foi apresentado na aula 03. O notebook de entrega funciona sem depender das variáveis de uma sessão anterior.
@@ -67,11 +66,9 @@ Conferi se os totais por mês, categoria, região, trimestre e cliente coincidia
 Como melhoria, eu recuperaria as datas inválidas na fonte, ampliaria a validação das colunas e testaria outras bases autorizadas. A classe e main atendem ao enunciado; não atribuí esses recursos a uma aula específica sem evidência. O MAPA_AULAS.md detalha as referências e os recursos auxiliares.
 
 ## Desenvolvimento e entrega
-Desenvolvi o projeto com apoio de IA para estruturar, comentar e revisar o código. Os commits automatizados estão identificados como assistente. Minha revisão e compreensão são parte da preparação para apresentar o trabalho.
+Projeto de Ananda Carvalho, desenvolvido com apoio de IA na implementação e na revisão.
 
 Usei main para a entrega, develop para integração, feat/pipeline-dados para implementação e docs/readme para documentação. O histórico preserva mais de cinco commits reais.
 
-Ainda preciso autorizar a publicação pública no GitHub, gravar o vídeo, inserir o link abaixo e enviar os links no AVA.
-
 ## Meu vídeo
-Link: pendente de gravação. Meu roteiro está em ROTEIRO_VIDEO.md, com falas e aulas correspondentes.
+Link: pendente de gravação.

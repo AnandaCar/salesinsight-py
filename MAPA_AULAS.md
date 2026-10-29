@@ -24,7 +24,7 @@ Usei a numeração do índice dos materiais que arquivei. Aula e semana não sã
 | Validação | Conferi totais, limites e execução sem variáveis anteriores | Verificação adicional do projeto, sem atribuição a uma aula específica |
 
 ## Recursos auxiliares
-Usei Path para caminhos e formatadores do Matplotlib para valores monetários. A montagem automática do notebook, os testes com nbclient e o empacotamento em ZIP apoiam a entrega; não fazem parte do conteúdo principal da análise. Não atribuí esses recursos ao professor sem confirmação.
+Usei Path para caminhos e formatadores do Matplotlib para valores monetários. A validação da execução e o empacotamento são procedimentos de entrega, separados da análise dos dados.
 
 ## Por que organizei assim
 Meu objetivo foi aplicar o conteúdo das aulas em uma sequência que eu consiga acompanhar: primeiro entendo a base, depois trato os dados, calculo as métricas e, por fim, apresento os resultados. As regras de negócio, como os limites Bronze/Prata/Ouro, vieram do desafio.
