@@ -66,8 +66,6 @@ Conferi se os totais por mês, categoria, região, trimestre e cliente coincidia
 Como melhoria, eu recuperaria as datas inválidas na fonte, ampliaria a validação das colunas e testaria outras bases autorizadas. A classe e main atendem ao enunciado; não atribuí esses recursos a uma aula específica sem evidência. O MAPA_AULAS.md detalha as referências e os recursos auxiliares.
 
 ## Desenvolvimento e entrega
-Projeto de Ananda Carvalho, desenvolvido com apoio de IA na implementação e na revisão.
-
 Usei main para a entrega, develop para integração, feat/pipeline-dados para implementação e docs/readme para documentação. O histórico preserva mais de cinco commits reais.
 
 ## Meu vídeo
